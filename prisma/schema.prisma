@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum IncidentSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum IncidentStatus {
+  open
+  resolved
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(user)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  incidents Incident[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@index([role])
+}
+
+
+model Incident {
+  id        String           @id @default(cuid())
+  service   String
+  severity  IncidentSeverity
+  message   String
+  status    IncidentStatus   @default(open)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+
+
+  @@index([service])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model ProcessedMessage {
+  id          String   @id @default(cuid())
+  messageKey  String   @unique
+  processedAt DateTime @default(now())
+
+  @@index([messageKey])
+}
+
+model OutboxEvent {
+id          String   @id @default(cuid())
+eventType   String
+aggregateId String
+payload     Json
+processing  Boolean  @default(false)
+ processingAt DateTime?
+published   Boolean  @default(false)
+createdAt   DateTime @default(now())
+publishedAt DateTime?
+
+@@index([published])
+@@index([createdAt])
+@@index([aggregateId])
+}
+

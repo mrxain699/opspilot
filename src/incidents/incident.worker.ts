@@ -9,6 +9,7 @@ import {
 import type { Channel, Message } from 'amqplib';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AIService } from '@/ai/ai.service';
 @Controller()
 export class IncidentWorker {
   private readonly logger = new Logger(IncidentWorker.name);
@@ -16,6 +17,7 @@ export class IncidentWorker {
   constructor(
     private readonly rabbitMQService: RabbitMQService,
     private readonly prisma: PrismaService,
+    private readonly aiService: AIService,
   ) {}
 
   @EventPattern(RABBITMQ_ROUTING_KEYS.INCIDENT_CREATED)
@@ -71,6 +73,25 @@ export class IncidentWorker {
           messageKey: eventId,
         },
       });
+
+      try {
+        const aiAnalysis = await this.aiService.analyzeIncident({
+          service: data.service,
+          severity: data.severity,
+          message: data.message,
+        });
+
+        this.logger.log(
+          `AI analysis completed for incident ${data.incidentId}: ${JSON.stringify(
+            aiAnalysis,
+          )}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `AI analysis failed for incident ${data.incidentId}`,
+          error,
+        );
+      }
 
       channel.ack(originalMessage);
 

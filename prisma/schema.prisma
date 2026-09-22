@@ -105,3 +105,13 @@ publishedAt DateTime?
 @@index([aggregateId])
 }
 
+model KnowledgeChunk {
+  id        String   @id
+  content   String
+  source    String
+  metadata  Json?
+  embedding Unsupported("vector(1536)")?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("knowledge_chunks")
+}

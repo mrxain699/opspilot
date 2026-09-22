@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { IncidentWorker } from './incidents/incident.worker';
 import { HealthModule } from './health/health.module';
+import { AIModule } from './ai/ai.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     RabbitMQModule,
     IncidentsModule,
     HealthModule,
+    AIModule,
   ],
   controllers: [IncidentWorker],
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],

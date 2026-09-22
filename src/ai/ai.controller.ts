@@ -6,18 +6,6 @@ import { AIService } from './ai.service';
 export class AIController {
   constructor(private readonly aiService: AIService) {}
 
-  @Post('test')
-  async test(
-    @Body()
-    body: {
-      service: string;
-      severity: string;
-      message: string;
-    },
-  ) {
-    return this.aiService.analyzeIncident(body);
-  }
-
   @Post('test-prompt')
   async testPrompt(
     @Body()

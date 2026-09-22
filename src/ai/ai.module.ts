@@ -7,8 +7,9 @@ import { AIPromptService } from './ai-prompt.service';
 import { AIResponseParser } from './ai-response.parser';
 import { RagModule } from '../rag/rag.module';
 import { FakeLLMProvider } from './providers/fake-llm.provider';
+import { PrismaModule } from '../prisma/prisma.module';
 @Module({
-  imports: [RagModule],
+  imports: [RagModule, PrismaModule],
   controllers: [AIController],
   providers: [
     AIService,

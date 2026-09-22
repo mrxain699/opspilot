@@ -3,6 +3,7 @@ import type { EmbeddingProvider } from '../embedding.provider';
 
 @Injectable()
 export class FakeEmbeddingProvider implements EmbeddingProvider {
+  // eslint-disable-next-line @typescript-eslint/require-await
   async generateEmbedding(text: string): Promise<number[]> {
     const embedding = new Array(1536).fill(0);
 

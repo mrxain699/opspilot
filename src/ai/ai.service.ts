@@ -6,6 +6,7 @@ import { AIPromptService } from './ai-prompt.service';
 import { AIResponseParser } from './ai-response.parser';
 import { RagService } from '../rag/rag.service';
 import { RagContextService } from '../rag/rag-context.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AIService {
@@ -16,6 +17,7 @@ export class AIService {
     private readonly responseParser: AIResponseParser,
     private readonly ragService: RagService,
     private readonly ragContextService: RagContextService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async analyzeIncident(input: {
@@ -28,13 +30,7 @@ export class AIService {
       5,
     );
 
-    const ragContext = this.ragContextService.buildContext(
-      chunks as Array<{
-        content: string;
-        source: string;
-        similarity: number;
-      }>,
-    );
+    const ragContext = this.ragContextService.buildContext(chunks);
 
     const prompt = this.promptService.buildIncidentPrompt({
       ...input,
@@ -56,13 +52,7 @@ export class AIService {
       5,
     );
 
-    const ragContext = this.ragContextService.buildContext(
-      chunks as Array<{
-        content: string;
-        source: string;
-        similarity: number;
-      }>,
-    );
+    const ragContext = this.ragContextService.buildContext(chunks);
 
     return this.promptService.buildIncidentPrompt({
       ...input,
@@ -72,5 +62,28 @@ export class AIService {
 
   parseTestResponse(response: string): IncidentAIAnalysis {
     return this.responseParser.parse(response);
+  }
+
+  async saveIncidentAnalysis(incidentId: string, analysis: IncidentAIAnalysis) {
+    return this.prisma.incidentAIAnalysis.upsert({
+      where: {
+        incidentId,
+      },
+      update: {
+        summary: analysis.summary,
+        possibleCause: analysis.possibleCause,
+        impact: analysis.impact,
+        recommendedActions: analysis.recommendedActions,
+        confidence: analysis.confidence,
+      },
+      create: {
+        incidentId,
+        summary: analysis.summary,
+        possibleCause: analysis.possibleCause,
+        impact: analysis.impact,
+        recommendedActions: analysis.recommendedActions,
+        confidence: analysis.confidence,
+      },
+    });
   }
 }

@@ -136,6 +136,9 @@ export class IncidentsService {
         id,
         userId,
       },
+      include: {
+        aiAnalysis: true,
+      },
     });
 
     if (!incident) {

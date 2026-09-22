@@ -8,6 +8,10 @@ export const RABBITMQ_QUEUES = {
   INCIDENT_RETRY: 'opspilot_incident_retry',
   INCIDENT_DLQ: 'opspilot_incident_dlq',
 
+  KNOWLEDGE: 'opspilot_knowledge',
+  KNOWLEDGE_RETRY: 'opspilot_knowledge_retry',
+  KNOWLEDGE_DLQ: 'opspilot_knowledge_dlq',
+
   // AI: 'opspilot_ai',
   // AI_RETRY: 'opspilot_ai_retry',
   // AI_DLQ: 'opspilot_ai_dlq',
@@ -22,6 +26,9 @@ export const RABBITMQ_ROUTING_KEYS = {
   INCIDENT_UPDATED: 'incident.updated',
   INCIDENT_RESOLVED: 'incident.resolved',
   INCIDENT_DLQ: 'incident.dlq',
+
+  KNOWLEDGE_INGEST: 'knowledge.ingest',
+  KNOWLEDGE_DLQ: 'knowledge.dlq',
 
   // AI_ANALYSIS_REQUESTED: 'ai.analysis.requested',
   // AI_ANALYSIS_COMPLETED: 'ai.analysis.completed',

@@ -35,6 +35,23 @@ async function bootstrap() {
     },
   });
 
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL ?? 'amqp://guest:guest@localhost:5672'],
+      queue: RABBITMQ_QUEUES.KNOWLEDGE,
+      queueOptions: {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': RABBITMQ_EXCHANGES.DLX,
+          'x-dead-letter-routing-key': RABBITMQ_ROUTING_KEYS.KNOWLEDGE_DLQ,
+        },
+      },
+      noAck: false,
+      prefetchCount: 1,
+    },
+  });
+
   await app.startAllMicroservices();
 
   await app.listen(process.env.PORT ?? 3000);

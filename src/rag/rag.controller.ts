@@ -1,58 +1,52 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Delete,
+  Param,
+  BadRequestException,
+} from '@nestjs/common';
 import { RagService } from './rag.service';
-
+import { IngestKnowledgeDto } from './dto/ingest-knowledge.dto';
+import { SearchKnowledgeDto } from './dto/search-knowledge.dto';
+import { RABBITMQ_ROUTING_KEYS } from '../rabbitmq/rabbitmq.constants';
+import { OutboxService } from '../rabbitmq/outbox.service';
 @Controller('rag')
 export class RagController {
-  constructor(private readonly ragService: RagService) {}
+  constructor(
+    private readonly ragService: RagService,
+    private readonly outboxService: OutboxService,
+  ) {}
 
-  @Post('test-ingest')
-  async testIngest(
-    @Body()
-    body: {
-      id: string;
-      content: string;
-      source: string;
-    },
-  ) {
-    await this.ragService.ingestDocument(body);
+  @Post('ingest')
+  async ingest(@Body() dto: IngestKnowledgeDto) {
+    await this.outboxService.createEvent({
+      eventType: RABBITMQ_ROUTING_KEYS.KNOWLEDGE_INGEST,
+      aggregateId: dto.id,
+      payload: { ...dto },
+    });
 
     return {
-      message: 'Document ingested successfully',
+      message: 'Knowledge ingestion queued successfully',
+      documentId: dto.id,
     };
   }
 
-  @Post('test-search')
-  async testSearch(
-    @Body()
-    body: {
-      query: string;
-      limit?: number;
-    },
-  ) {
-    return this.ragService.retrieveRelevant(body.query, body.limit ?? 5);
+  @Post('search')
+  async search(@Body() dto: SearchKnowledgeDto) {
+    return this.ragService.retrieveRelevant(dto.query, dto.limit ?? 5);
   }
 
-  @Post('test-context')
-  async testContext(
-    @Body()
-    body: {
-      query: string;
-      limit?: number;
-    },
-  ) {
-    return this.ragService.buildTestContext(body.query, body.limit ?? 5);
-  }
+  @Delete(':documentId')
+  async deleteDocument(@Param('documentId') documentId: string) {
+    if (!documentId.trim()) {
+      throw new BadRequestException('Document ID is required');
+    }
 
-  @Post('test-build-context')
-  async testBuildContext(
-    @Body()
-    body: {
-      query: string;
-      limit?: number;
-    },
-  ) {
+    await this.ragService.deleteDocument(documentId);
+
     return {
-      context: await this.ragService.buildContext(body.query, body.limit ?? 5),
+      message: 'Knowledge document deleted successfully',
     };
   }
 }

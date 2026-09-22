@@ -28,10 +28,14 @@ export class RabbitMQTopologyService implements OnModuleInit, OnModuleDestroy {
   private async setupTopology() {
     const eventsExchange = RABBITMQ_EXCHANGES.EVENTS;
     const dlxExchange = RABBITMQ_EXCHANGES.DLX;
+
     const incidentQueue = RABBITMQ_QUEUES.INCIDENT;
     const incidentRetryQueue = RABBITMQ_QUEUES.INCIDENT_RETRY;
     const incidentDlq = RABBITMQ_QUEUES.INCIDENT_DLQ;
 
+    const knowledgeQueue = RABBITMQ_QUEUES.KNOWLEDGE;
+    const knowledgeRetryQueue = RABBITMQ_QUEUES.KNOWLEDGE_RETRY;
+    const knowledgeDlq = RABBITMQ_QUEUES.KNOWLEDGE_DLQ;
     // Exchanges
     await this.channel.assertExchange(eventsExchange, 'topic', {
       durable: true,
@@ -47,6 +51,14 @@ export class RabbitMQTopologyService implements OnModuleInit, OnModuleDestroy {
       arguments: {
         'x-dead-letter-exchange': dlxExchange,
         'x-dead-letter-routing-key': RABBITMQ_ROUTING_KEYS.INCIDENT_DLQ,
+      },
+    });
+
+    await this.channel.assertQueue(knowledgeQueue, {
+      durable: true,
+      arguments: {
+        'x-dead-letter-exchange': dlxExchange,
+        'x-dead-letter-routing-key': RABBITMQ_ROUTING_KEYS.KNOWLEDGE_DLQ,
       },
     });
 
@@ -76,6 +88,15 @@ export class RabbitMQTopologyService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    await this.channel.assertQueue(knowledgeRetryQueue, {
+      durable: true,
+      arguments: {
+        'x-message-ttl': 5000,
+        'x-dead-letter-exchange': eventsExchange,
+        'x-dead-letter-routing-key': RABBITMQ_ROUTING_KEYS.KNOWLEDGE_INGEST,
+      },
+    });
+
     // await this.channel.assertQueue(AI_RETRY_QUEUE, {
     //   durable: true,
     //   arguments: {
@@ -94,6 +115,9 @@ export class RabbitMQTopologyService implements OnModuleInit, OnModuleDestroy {
 
     // DLQs
     await this.channel.assertQueue(incidentDlq, { durable: true });
+    await this.channel.assertQueue(knowledgeDlq, {
+      durable: true,
+    });
     // await this.channel.assertQueue(AI_DLQ, { durable: true });
     // await this.channel.assertQueue(AUDIT_DLQ, { durable: true });
 
@@ -107,6 +131,17 @@ export class RabbitMQTopologyService implements OnModuleInit, OnModuleDestroy {
       incidentDlq,
       dlxExchange,
       RABBITMQ_ROUTING_KEYS.INCIDENT_DLQ,
+    );
+    await this.channel.bindQueue(
+      RABBITMQ_QUEUES.KNOWLEDGE,
+      RABBITMQ_EXCHANGES.EVENTS,
+      RABBITMQ_ROUTING_KEYS.KNOWLEDGE_INGEST,
+    );
+
+    await this.channel.bindQueue(
+      RABBITMQ_QUEUES.KNOWLEDGE_DLQ,
+      RABBITMQ_EXCHANGES.DLX,
+      RABBITMQ_ROUTING_KEYS.KNOWLEDGE_DLQ,
     );
     // await this.channel.bindQueue(AI_DLQ, DLX_EXCHANGE, 'ai.dlq');
     // await this.channel.bindQueue(AUDIT_DLQ, DLX_EXCHANGE, 'audit.dlq');

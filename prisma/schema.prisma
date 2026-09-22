@@ -58,6 +58,8 @@ model Incident {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
+  aiAnalysis IncidentAIAnalysis?
+
 
 
   @@index([service])
@@ -114,4 +116,19 @@ model KnowledgeChunk {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
+}
+
+model IncidentAIAnalysis {
+  id                 String   @id @default(cuid())
+  incidentId         String   @unique
+  summary            String
+  possibleCause      String
+  impact             String
+  recommendedActions Json
+  confidence         Float
+  createdAt          DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
 }

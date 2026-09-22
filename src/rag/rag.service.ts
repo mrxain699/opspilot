@@ -47,6 +47,10 @@ export class RagService {
     return this.vectorStore.searchSimilar(embedding, limit);
   }
 
+  async deleteDocument(documentId: string) {
+    await this.vectorStore.deleteByDocumentId(documentId);
+  }
+
   async buildTestContext(query: string, limit = 5) {
     const chunks = await this.retrieveRelevant(query, limit);
 
@@ -59,12 +63,6 @@ export class RagService {
   async buildContext(query: string, limit = 5) {
     const chunks = await this.retrieveRelevant(query, limit);
 
-    return this.ragContextService.buildContext(
-      chunks as Array<{
-        content: string;
-        source: string;
-        similarity: number;
-      }>,
-    );
+    return this.ragContextService.buildContext(chunks);
   }
 }

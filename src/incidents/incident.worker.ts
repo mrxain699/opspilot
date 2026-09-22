@@ -81,6 +81,8 @@ export class IncidentWorker {
           message: data.message,
         });
 
+        await this.aiService.saveIncidentAnalysis(data.incidentId, aiAnalysis);
+
         this.logger.log(
           `AI analysis completed for incident ${data.incidentId}: ${JSON.stringify(
             aiAnalysis,

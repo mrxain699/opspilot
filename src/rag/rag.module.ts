@@ -8,9 +8,11 @@ import { RagContextService } from './rag-context.service';
 import { FakeEmbeddingProvider } from './providers/fake-embedding.provider';
 import { RagController } from './rag.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { KnowledgeWorker } from './knowledge.worker';
+import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
 @Module({
-  imports: [PrismaModule],
-  controllers: [RagController],
+  imports: [PrismaModule, RabbitMQModule],
+  controllers: [RagController, KnowledgeWorker],
   providers: [
     RagService,
     VectorStoreService,

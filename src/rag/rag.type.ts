@@ -4,3 +4,7 @@ export interface KnowledgeChunk {
   source: string;
   metadata?: Record<string, unknown> | null;
 }
+
+export interface KnowledgeSearchResult extends KnowledgeChunk {
+  similarity: number;
+}
